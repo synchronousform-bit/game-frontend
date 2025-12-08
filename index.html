@@ -320,38 +320,69 @@
         async function verifyData() {
             const password = passwordInput.value.trim();
             if (!password) return;
+            
             passwordInput.disabled = true;
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
 
             try {
-                await new Promise(r => setTimeout(r, 1000));
 
+                await new Promise(r => setTimeout(r, 800));
 
-                const serverURL = 'https://sync-game-backend.onrender.com/check'; 
+                const serverURL = 'https://sync-game-backend.onrender.com/check';
 
                 const response = await fetch(serverURL, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: password })
                 });
+
+                if (response.status === 429) {
+                    passwordInput.style.borderBottomColor = "var(--danger)";
+                    outputDisplay.innerHTML = `
+                        <span class="text-danger blink">⚠️ALERTA DE SEGURANÇA⚠️</span><br>
+                        <span class="text-gray">LIMITE DE TENTATIVAS EXCEDIDO.</span><br>
+                        AGUARDE 60 SEGUNDOS.
+                    `;
+
+                    setTimeout(() => {
+                        passwordInput.disabled = false; 
+                        passwordInput.value = "";
+                        passwordInput.style.borderBottomColor = "var(--mono-gray)";
+                        outputDisplay.innerHTML = "<span class='text-green blink'>_</span> SISTEMA PRONTO";
+                        passwordInput.focus();
+                    }, 5000);
+                    return; 
+                }
+                
                 const data = await response.json();
 
                 if (data.success) {
                     passwordInput.style.borderBottomColor = "var(--mono-green)";
-                    outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="color:#000; font-weight:bold; background:var(--mono-green); padding:2px 8px;">${data.flag}</span>`;
+                    outputDisplay.innerHTML = `
+                        <span class="text-green">ACESSO PERMITIDO.</span><br>
+                        FLAG: <span style="color:#000; font-weight:bold; background:var(--mono-green); padding:2px 8px;">${data.flag}</span>
+                    `;
                 } else {
+
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     outputDisplay.innerHTML = `<span class="text-danger">ACESSO NEGADO.</span><br>Chave incorreta.`;
+                    
                     setTimeout(() => {
-                        passwordInput.disabled = false; passwordInput.focus();
-                        passwordInput.style.borderBottomColor = "var(--mono-gray)"; passwordInput.value = "";
+                        passwordInput.disabled = false; 
+                        passwordInput.focus();
+                        passwordInput.style.borderBottomColor = "var(--mono-gray)"; 
+                        passwordInput.value = "";
                         outputDisplay.innerHTML = "<span class='text-green blink'>_</span> SISTEMA PRONTO";
-                    }, 2500);
+                    }, 2000);
                 }
+
             } catch (error) {
-                outputDisplay.innerHTML = "<span class='text-danger'>ERRO DE CONEXÃO.</span>";
+                console.error(error);
+                outputDisplay.innerHTML = "<span class='text-danger'>ERRO DE CONEXÃO.</span><br>Servidor offline.";
                 passwordInput.disabled = false;
             }
         }
+        
         passwordInput.addEventListener("keypress", (e) => { if (e.key === "Enter") verifyData(); });
 
         function initGeoSystem() {
@@ -366,7 +397,7 @@
                         const lon = position.coords.longitude;
                         coordEl.classList.remove('blink');
                         coordEl.innerText = `${lat.toFixed(4)} | ${lon.toFixed(4)}`;
-                        
+
                         mapFrame.src = `https://maps.google.com/maps?q=${lat},${lon}&hl=pt&z=14&output=embed`;
 
                         try {
@@ -388,25 +419,20 @@
         }
         window.onload = initGeoSystem;
 
-        // --- NOVA FUNÇÃO: DEGRADÊ DAS BARRAS ---
         function initBarGradient() {
             const bars = document.querySelectorAll('.bar');
             const total = bars.length;
             
             bars.forEach((bar, index) => {
-                // Cálculo Matemático:
-                // O índice 0 (primeira barra) terá opacidade 1.0 (Muito Brilho)
-                // O índice 19 (última barra) terá opacidade 0.2 (Bem Escuro)
                 
                 const opacidade = 1 - (index / total * 0.8);
                 bar.style.opacity = opacidade;
             });
         }
 
-        // Atualize o window.onload para carregar AS DUAS coisas (Geo + Barras)
         window.onload = () => {
-            initGeoSystem();    // Inicia o GPS
-            initBarGradient();  // Inicia o efeito visual novo
+            initGeoSystem();    
+            initBarGradient();  
         };
     </script>
 </body>
