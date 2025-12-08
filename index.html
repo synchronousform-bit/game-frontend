@@ -397,7 +397,6 @@
                         const lon = position.coords.longitude;
                         coordEl.classList.remove('blink');
                         coordEl.innerText = `${lat.toFixed(4)} | ${lon.toFixed(4)}`;
-
                         mapFrame.src = `https://maps.google.com/maps?q=${lat},${lon}&hl=pt&z=14&output=embed`;
 
                         try {
@@ -409,8 +408,37 @@
                         } catch (e) { sectorEl.innerText = "OFF_GRID_SECTOR"; }
                     },
                     (error) => {
-                        coordEl.innerText = "SIGNAL_LOST"; coordEl.style.color = "var(--danger)";
-                        sectorEl.innerText = "VPN_DETECTED"; sectorEl.style.color = "var(--danger)";
+
+                        coordEl.style.color = "var(--danger)";
+                        sectorEl.style.color = "var(--danger)";
+
+                        if (error.code === error.PERMISSION_DENIED) {
+                            coordEl.innerText = "GEO_BLOCKED";  
+                            sectorEl.innerText = "ACCESS_DENIED"; 
+    
+                            mapFrame.src = "about:blank"; 
+                        
+                            const overlay = document.querySelector('.map-overlay');
+                            overlay.style.backgroundColor = "rgba(0,0,0,0.8)"
+                            overlay.innerHTML = `
+                                <div style="
+                                    display:flex; 
+                                    flex-direction:column;
+                                    justify-content:center; 
+                                    align-items:center; 
+                                    height:100%; 
+                                    color:var(--danger); 
+                                    text-align:center;
+                                    font-weight:bold;
+                                    letter-spacing: 2px;
+                                ">
+                                    <div style="margin-top:5px">LOCALIZAÇÃO<br>BLOQUEADA PELO<br>USUÁRIO</div>
+                                </div>
+                            `;
+                        } else {
+                            coordEl.innerText = "SIGNAL_LOST";
+                            sectorEl.innerText = "SAT_OFFLINE";
+                        }
                     }
                 );
             } else { 
