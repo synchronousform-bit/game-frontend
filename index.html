@@ -355,6 +355,8 @@
         });
 
         async function verifyData() {
+            if (verificarBloqueio()) return;
+
             const password = passwordInput.value.trim();
             if (!password) return;
             
@@ -362,32 +364,41 @@
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
 
             try {
-
-                await new Promise(r => setTimeout(r, 800));
-
-                const serverURL = 'https://sync-game-backend.onrender.com/check';
-
+                await new Promise(r => setTimeout(r, 800)); // Charminho visual
+                
+                const serverURL = 'https://sync-game-backend.onrender.com/check'; 
+                
                 const response = await fetch(serverURL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: password })
                 });
 
+                // === AQUI ESTAVA O PROBLEMA (CORRIGIDO COM TIMER) ===
                 if (response.status === 429) {
                     passwordInput.style.borderBottomColor = "var(--danger)";
-                    outputDisplay.innerHTML = `
-                        <span class="text-danger blink">ALERTA DE SEGURANÇA</span><br>
-                        <span class="text-gray">LIMITE DE TENTATIVAS</span><br>
-                        AGUARDE 60 SEGUNDOS.
-                    `;
+                    
+                    let segundosRestantes = 60; // Define 60 segundos de bloqueio visual
 
-                    setTimeout(() => {
-                        passwordInput.disabled = false; 
-                        passwordInput.value = "";
-                        passwordInput.style.borderBottomColor = "var(--mono-gray)";
-                        outputDisplay.innerHTML = "<span class='text-green blink'>_</span> SISTEMA PRONTO";
-                        passwordInput.focus();
-                    }, 5000);
+                    // Função que atualiza o contador a cada segundo
+                    const cooldownInterval = setInterval(() => {
+                        outputDisplay.innerHTML = `
+                            <span class="text-danger blink">⛔ ALERTA DE FLOOD</span><br>
+                            <span class="text-gray">SISTEMA TRAVADO: ${segundosRestantes}s</span>
+                        `;
+                        segundosRestantes--;
+
+                        if (segundosRestantes < 0) {
+                            clearInterval(cooldownInterval); // Para o contador
+                            // Libera o sistema
+                            passwordInput.disabled = false; 
+                            passwordInput.value = "";
+                            passwordInput.style.borderBottomColor = "var(--mono-gray)";
+                            outputDisplay.innerHTML = "<span class='text-green blink'>_</span> SISTEMA PRONTO";
+                            passwordInput.focus();
+                        }
+                    }, 1000);
+                    
                     return; 
                 }
                 
@@ -395,15 +406,10 @@
 
                 if (data.success) {
                     passwordInput.style.borderBottomColor = "var(--mono-green)";
-                    outputDisplay.innerHTML = `
-                        <span class="text-green">ACESSO PERMITIDO.</span><br>
-                        FLAG: <span style="color:#000; font-weight:bold; background:var(--mono-green); padding:2px 8px;">${data.flag}</span>
-                    `;
+                    outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="background:var(--mono-green); color:#000">${data.flag}</span>`;
                 } else {
-
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     outputDisplay.innerHTML = `<span class="text-danger">ACESSO NEGADO.</span><br>Chave incorreta.`;
-                    
                     setTimeout(() => {
                         passwordInput.disabled = false; 
                         passwordInput.focus();
@@ -412,10 +418,9 @@
                         outputDisplay.innerHTML = "<span class='text-green blink'>_</span> SISTEMA PRONTO";
                     }, 2000);
                 }
-
             } catch (error) {
                 console.error(error);
-                outputDisplay.innerHTML = "<span class='text-danger'>ERRO DE CONEXÃO.</span><br>Servidor offline.";
+                outputDisplay.innerHTML = "<span class='text-danger'>ERRO DE CONEXÃO.</span>";
                 passwordInput.disabled = false;
             }
         }
