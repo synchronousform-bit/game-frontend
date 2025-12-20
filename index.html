@@ -175,6 +175,35 @@
             .center-stage { order: -1; margin-bottom: 20px; }
             .map-container { height: 200px; }
         }
+        .sniffer-container {
+            margin-top: 15px;
+            border: 1px solid #333;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            flex: 1; /* Ocupa o resto do espaço vertical */
+            display: flex;
+            flex-direction: column;
+            min-height: 150px; /* Garante altura mínima */
+        }
+
+        .traffic-log {
+            flex: 1;
+            overflow: hidden; /* Esconde a barra de rolagem mas mantém conteúdo */
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--mono-gray);
+            line-height: 1.4;
+            text-align: left;
+            opacity: 0.8;
+        }
+
+        .traffic-line {
+            display: block;
+            white-space: nowrap;
+        }
+
+        .highlight-hex { color: var(--mono-green); }
+        .highlight-warn { color: #ffff00; }
     </style>
 </head>
 <body>
@@ -270,6 +299,14 @@
                     5. Submeta no Discord.<br>
                     6. Receba sua pontuação.<br><br>
                     <span class="text-gray">> FALHAS SERÃO REGISTRADAS.</span>
+                </div>
+                <div class="sniffer-container">
+                    <div class="panel-header" style="border:none; margin-bottom:5px;">
+                        <span>NET_TRAFFIC</span>
+                        <span class="blink text-danger">● REC</span>
+                    </div>
+                    <div id="traffic-log" class="traffic-log">
+                        </div>
                 </div>
             </div>
         </div>
@@ -461,6 +498,55 @@
         window.onload = () => {
             initGeoSystem();    
             initBarGradient();  
+        };
+
+        /* ================= PACKET SNIFFER (EFEITO VISUAL) ================= */
+        function initSniffer() {
+            const logContainer = document.getElementById('traffic-log');
+            const verbs = ['AUTH', 'GET', 'POST', 'PING', 'ACK', 'SYN', 'ENC'];
+            const systems = ['MAIN_DB', 'SAT_UPLINK', 'NODE_04', 'GATEWAY', 'PROXY'];
+            
+            // Função para gerar linha aleatória
+            function addLine() {
+                const verb = verbs[Math.floor(Math.random() * verbs.length)];
+                const sys = systems[Math.floor(Math.random() * systems.length)];
+                const ip = `192.168.0.${Math.floor(Math.random() * 255)}`;
+                const hex = Math.random().toString(16).substring(2, 8).toUpperCase();
+                
+                // Cria o HTML da linha
+                const div = document.createElement('div');
+                div.className = 'traffic-line';
+                
+                // Formata o texto: [VERB] IP -> SYSTEM :: HEX
+                div.innerHTML = `[${verb}] ${ip} -> <span class="highlight-hex">${sys}</span> :: 0x${hex}`;
+                
+                // Adiciona ao container
+                logContainer.appendChild(div);
+                
+                // Rola para baixo automaticamente
+                logContainer.scrollTop = logContainer.scrollHeight;
+                
+                // Limpeza: Mantém apenas as últimas 15 linhas para não pesar o navegador
+                if (logContainer.childElementCount > 15) {
+                    logContainer.removeChild(logContainer.firstChild);
+                }
+            }
+
+            // Adiciona uma linha a cada 200ms a 800ms (ritmo variável)
+            function loop() {
+                const delay = Math.floor(Math.random() * 600) + 200;
+                addLine();
+                setTimeout(loop, delay);
+            }
+            
+            loop(); // Inicia
+        }
+
+        // Adicione ao onload existente
+        const oldOnload = window.onload;
+        window.onload = () => {
+            if (oldOnload) oldOnload();
+            initSniffer(); // Inicia o sniffer junto com o resto
         };
     </script>
 </body>
