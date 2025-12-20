@@ -355,11 +355,13 @@
         });
 
         async function verifyData() {
-            if (verificarBloqueio()) return;
+            // CORREÇÃO AQUI: Verifica diretamente se o input está travado
+            if (passwordInput.disabled) return;
 
             const password = passwordInput.value.trim();
             if (!password) return;
             
+            // Trava o input visualmente enquanto carrega
             passwordInput.disabled = true;
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
 
@@ -374,13 +376,12 @@
                     body: JSON.stringify({ password: password })
                 });
 
-                // === AQUI ESTAVA O PROBLEMA (CORRIGIDO COM TIMER) ===
+                // === LÓGICA DO BLOQUEIO DE 60 SEGUNDOS ===
                 if (response.status === 429) {
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     
-                    let segundosRestantes = 60; // Define 60 segundos de bloqueio visual
+                    let segundosRestantes = 60; // Define 60 segundos de bloqueio
 
-                    // Função que atualiza o contador a cada segundo
                     const cooldownInterval = setInterval(() => {
                         outputDisplay.innerHTML = `
                             <span class="text-danger blink">⛔ ALERTA DE FLOOD</span><br>
@@ -399,7 +400,7 @@
                         }
                     }, 1000);
                     
-                    return; 
+                    return; // Para a execução aqui
                 }
                 
                 const data = await response.json();
@@ -407,9 +408,13 @@
                 if (data.success) {
                     passwordInput.style.borderBottomColor = "var(--mono-green)";
                     outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="background:var(--mono-green); color:#000">${data.flag}</span>`;
+                    // Mantém desabilitado ou libera dependendo do que você quer fazer depois do sucesso
+                     passwordInput.disabled = false;
                 } else {
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     outputDisplay.innerHTML = `<span class="text-danger">ACESSO NEGADO.</span><br>Chave incorreta.`;
+                    
+                    // Libera para tentar de novo após 2 segundos (se não for bloqueio 429)
                     setTimeout(() => {
                         passwordInput.disabled = false; 
                         passwordInput.focus();
