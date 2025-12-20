@@ -354,14 +354,14 @@
             }, 800);
         });
 
-        async function verifyData() {
-            // CORREÇÃO AQUI: Verifica diretamente se o input está travado
+       async function verifyData() {
+            // 1. SEGURANÇA: Se o input já estiver travado (pelo timer), não faz nada
             if (passwordInput.disabled) return;
 
             const password = passwordInput.value.trim();
             if (!password) return;
             
-            // Trava o input visualmente enquanto carrega
+            // 2. Trava visualmente enquanto carrega
             passwordInput.disabled = true;
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
 
@@ -376,11 +376,11 @@
                     body: JSON.stringify({ password: password })
                 });
 
-                // === LÓGICA DO BLOQUEIO DE 60 SEGUNDOS ===
+                // === 3. LÓGICA DO BLOQUEIO DE 60 SEGUNDOS (ERRO 429) ===
                 if (response.status === 429) {
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     
-                    let segundosRestantes = 60; // Define 60 segundos de bloqueio
+                    let segundosRestantes = 60; 
 
                     const cooldownInterval = setInterval(() => {
                         outputDisplay.innerHTML = `
@@ -390,7 +390,7 @@
                         segundosRestantes--;
 
                         if (segundosRestantes < 0) {
-                            clearInterval(cooldownInterval); // Para o contador
+                            clearInterval(cooldownInterval); 
                             // Libera o sistema
                             passwordInput.disabled = false; 
                             passwordInput.value = "";
@@ -405,16 +405,31 @@
                 
                 const data = await response.json();
 
+                // === 4. SUCESSO E DETECÇÃO DE LINK ===
                 if (data.success) {
                     passwordInput.style.borderBottomColor = "var(--mono-green)";
-                    outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="background:var(--mono-green); color:#000">${data.flag}</span>`;
-                    // Mantém desabilitado ou libera dependendo do que você quer fazer depois do sucesso
-                     passwordInput.disabled = false;
+                    
+                    // VERIFICA SE É UM LINK (Começa com http ou https)
+                    if (data.flag.startsWith('http')) {
+                        outputDisplay.innerHTML = `
+                            <span class="text-green">ACESSO PERMITIDO.</span><br>
+                            <span class="text-gray">ARQUIVO LOCALIZADO:</span><br><br>
+                            <a href="${data.flag}" target="_blank" style="color:var(--mono-green); text-decoration:none; border: 1px solid var(--mono-green); padding: 8px 12px; display: inline-block; margin-top:5px; transition: all 0.3s;">
+                            [ 📂 ABRIR DOCUMENTO CONFIDENCIAL ]
+                            </a>
+                        `;
+                    } else {
+                        // SE FOR TEXTO NORMAL
+                        outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="background:var(--mono-green); color:#000">${data.flag}</span>`;
+                    }
+
+                    passwordInput.disabled = false;
+                
                 } else {
+                    // === 5. SENHA INCORRETA ===
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     outputDisplay.innerHTML = `<span class="text-danger">ACESSO NEGADO.</span><br>Chave incorreta.`;
                     
-                    // Libera para tentar de novo após 2 segundos (se não for bloqueio 429)
                     setTimeout(() => {
                         passwordInput.disabled = false; 
                         passwordInput.focus();
