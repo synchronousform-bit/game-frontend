@@ -180,15 +180,15 @@
             border: 1px solid #333;
             background: rgba(0, 0, 0, 0.5);
             padding: 10px;
-            flex: 1; /* Ocupa o resto do espaço vertical */
+            flex: 1; 
             display: flex;
             flex-direction: column;
-            min-height: 150px; /* Garante altura mínima */
+            min-height: 150px; 
         }
 
         .traffic-log {
             flex: 1;
-            overflow: hidden; /* Esconde a barra de rolagem mas mantém conteúdo */
+            overflow: hidden; 
             font-family: 'Share Tech Mono', monospace;
             font-size: 0.65rem;
             color: var(--mono-gray);
@@ -355,18 +355,18 @@
         });
 
        async function verifyData() {
-            // 1. SEGURANÇA: Se o input já estiver travado (pelo timer), não faz nada
+            
             if (passwordInput.disabled) return;
 
             const password = passwordInput.value.trim();
             if (!password) return;
             
-            // 2. Trava visualmente enquanto carrega
+        
             passwordInput.disabled = true;
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
 
             try {
-                await new Promise(r => setTimeout(r, 800)); // Charminho visual
+                await new Promise(r => setTimeout(r, 800)); 
                 
                 const serverURL = 'https://sync-game-backend.onrender.com/check'; 
                 
@@ -376,7 +376,7 @@
                     body: JSON.stringify({ password: password })
                 });
 
-                // === 3. LÓGICA DO BLOQUEIO DE 60 SEGUNDOS (ERRO 429) ===
+                
                 if (response.status === 429) {
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     
@@ -391,7 +391,6 @@
 
                         if (segundosRestantes < 0) {
                             clearInterval(cooldownInterval); 
-                            // Libera o sistema
                             passwordInput.disabled = false; 
                             passwordInput.value = "";
                             passwordInput.style.borderBottomColor = "var(--mono-gray)";
@@ -400,16 +399,16 @@
                         }
                     }, 1000);
                     
-                    return; // Para a execução aqui
+                    return; 
                 }
                 
                 const data = await response.json();
 
-                // === 4. SUCESSO E DETECÇÃO DE LINK ===
+                
                 if (data.success) {
                     passwordInput.style.borderBottomColor = "var(--mono-green)";
                     
-                    // VERIFICA SE É UM LINK (Começa com http ou https)
+                    
                     if (data.flag.startsWith('http')) {
                         outputDisplay.innerHTML = `
                             <span class="text-green">ACESSO PERMITIDO.</span><br>
@@ -419,14 +418,14 @@
                             </a>
                         `;
                     } else {
-                        // SE FOR TEXTO NORMAL
+                        
                         outputDisplay.innerHTML = `<span class="text-green">ACESSO PERMITIDO.</span><br>FLAG: <span style="background:var(--mono-green); color:#000">${data.flag}</span>`;
                     }
 
                     passwordInput.disabled = false;
                 
                 } else {
-                    // === 5. SENHA INCORRETA ===
+                    
                     passwordInput.style.borderBottomColor = "var(--danger)";
                     outputDisplay.innerHTML = `<span class="text-danger">ACESSO NEGADO.</span><br>Chave incorreta.`;
                     
@@ -525,53 +524,53 @@
             initBarGradient();  
         };
 
-        /* ================= PACKET SNIFFER (EFEITO VISUAL) ================= */
+        
         function initSniffer() {
             const logContainer = document.getElementById('traffic-log');
             const verbs = ['AUTH', 'GET', 'POST', 'PING', 'ACK', 'SYN', 'ENC'];
             const systems = ['MAIN_DB', 'SAT_UPLINK', 'NODE_04', 'GATEWAY', 'PROXY'];
             
-            // Função para gerar linha aleatória
+            
             function addLine() {
                 const verb = verbs[Math.floor(Math.random() * verbs.length)];
                 const sys = systems[Math.floor(Math.random() * systems.length)];
                 const ip = `192.168.0.${Math.floor(Math.random() * 255)}`;
                 const hex = Math.random().toString(16).substring(2, 8).toUpperCase();
                 
-                // Cria o HTML da linha
+                
                 const div = document.createElement('div');
                 div.className = 'traffic-line';
                 
-                // Formata o texto: [VERB] IP -> SYSTEM :: HEX
+                
                 div.innerHTML = `[${verb}] ${ip} -> <span class="highlight-hex">${sys}</span> :: 0x${hex}`;
                 
-                // Adiciona ao container
+                
                 logContainer.appendChild(div);
                 
-                // Rola para baixo automaticamente
+                
                 logContainer.scrollTop = logContainer.scrollHeight;
                 
-                // Limpeza: Mantém apenas as últimas 15 linhas para não pesar o navegador
+                
                 if (logContainer.childElementCount > 15) {
                     logContainer.removeChild(logContainer.firstChild);
                 }
             }
 
-            // Adiciona uma linha a cada 200ms a 800ms (ritmo variável)
+            
             function loop() {
                 const delay = Math.floor(Math.random() * 600) + 200;
                 addLine();
                 setTimeout(loop, delay);
             }
             
-            loop(); // Inicia
+            loop(); 
         }
 
-        // Adicione ao onload existente
+        
         const oldOnload = window.onload;
         window.onload = () => {
             if (oldOnload) oldOnload();
-            initSniffer(); // Inicia o sniffer junto com o resto
+            initSniffer();  
         };
     </script>
 </body>
