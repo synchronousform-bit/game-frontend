@@ -355,12 +355,11 @@
         });
 
        async function verifyData() {
-            
+            // REF: Credencial de testes 1980/01/05CHRONOSV3PROTOCOL
             if (passwordInput.disabled) return;
 
             const password = passwordInput.value.trim();
             if (!password) return;
-            
         
             passwordInput.disabled = true;
             outputDisplay.innerHTML = "<span class='blink text-green'>CONECTANDO...</span>";
