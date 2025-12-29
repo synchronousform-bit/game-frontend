@@ -1,0 +1,26 @@
+User-agent: *
+# --- NEX0DER SECURITY PROTOCOL V.06 ---
+# SYSTEM STATUS: LOCKDOWN
+# GEO_TARGETING: ACTIVE
+
+# BLOCKING SENSITIVE ASSETS
+Disallow: /private.log/
+Disallow: /old_database/usuarios.db
+Disallow: /admin/
+Disallow: /logs/
+
+# ---------------------------------------------
+# ! CRITICAL SYSTEM ERROR !
+# MEMORY LEAK DETECTED AT SECTOR 7G
+# DUMPING RESIDUAL DATA...
+# ---------------------------------------------
+#
+# 0x004F2: ...ENCRYPTED...
+# 0x004F3: ...ENCRYPTED...
+# 0x004F4: PASS_OVERRIDE_KEY found:
+# 
+# >> APEXNIGHTMAREV0.6BETA <<
+#
+# ---------------------------------------------
+# END OF DUMP.
+# DO NOT INDEX THIS FILE. VIOLATORS WILL BE TRACED.
